@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.Audio;
 
 
 public class Count : MonoBehaviour
@@ -11,16 +13,18 @@ public class Count : MonoBehaviour
     public bool timerIsRunning = false;
     private int count;
     public TextMeshProUGUI CountText;
-    public GameObject WinTextObject;
-    public GameObject FailTextObject;
+    public GameObject WinText;
+    public GameObject FailText;
     public TextMeshProUGUI TimerText;
+    public AudioMixerSnapshot BackGroundSnapshot;
+    public AudioMixerSnapshot InteriorsSnapshot;
 
     // Start is called before the first frame update
     void Start()
     {
         SetCountText();
-        WinTextObject.SetActive(false);
-        FailTextObject.SetActive(false);
+        WinText.SetActive(false);
+        FailText.SetActive(false);
         count = 0;
         timerIsRunning = true;
     }
@@ -40,8 +44,12 @@ public class Count : MonoBehaviour
         CountText.text = "Count: " + count.ToString();
         if(count >= 12)
         {
-            WinTextObject.SetActive(true);
+            WinText.SetActive(true);
         }
+    }
+    void SetFailText()
+    {
+        FailText.GetComponent<Text>().text = "You get " + count + "/12 Pickups." + " If you did not get all Pickups and Time runs out, then you lose. Otherwish, you win.";
     }
 
     // Update is called once per frame
@@ -54,10 +62,23 @@ public class Count : MonoBehaviour
             count = count + 1;
             SetCountText();
         }
+        if (other.CompareTag("InteriorsZone"))
+        {
+            InteriorsSnapshot.TransitionTo(0.5f);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("InteriorsZone"))
+        {
+            BackGroundSnapshot.TransitionTo(0.5f);
+        }
     }
 
     void Update()
     {
+        SetFailText();
         if(timeRemaining > 0)
         {
             timeRemaining -= Time.deltaTime;
@@ -65,9 +86,12 @@ public class Count : MonoBehaviour
         }
         else
         {
-            Debug.Log("Time has run out!");
             timeRemaining = 0;
             timerIsRunning = false;
+        }
+        if(timeRemaining == 0)
+        {
+            FailText.SetActive(true);
         }
     }
 }
